@@ -1,7 +1,7 @@
 
 #include <SoftwareSerial.h>
 
-SoftwareSerial mySerial(1,11); // pin 0 = TX, pin 1 = RX (unused)
+SoftwareSerial mySerial(1,11); //  pin 0 = TX, pin 1 = RX (unused)
 int pin = 11;
 const int boilerFill = A0;    // pin that the sensor is attached to
 const int fillSol = 2;       // attached to pin2
