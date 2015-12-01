@@ -1,7 +1,7 @@
 
 #include <SoftwareSerial.h>
 
-SoftwareSerial mySerial(1,11); //  pin 0 = TX, pin 1 = RX (unused)
+SoftwareSerial mySerial(1, 11); //  pin 0 = TX, pin 1 = RX (unused)
 int pin = 11;
 const int boilerFill = A0;    // pin that the sensor is attached to
 const int fillSol = 2;       // attached to pin2
@@ -23,134 +23,134 @@ int brightness = 0;  // how bright the LED is
 int fadeAmount = 5;  // how many points to fade the LED by
 
 
-void setup() 
+void setup()
 {
   pinMode(boilerFill, OUTPUT);
   pinMode(LCD, OUTPUT);
   pinMode(fillSol, OUTPUT);
   pinMode(pullshot, INPUT);
-//  pinMode(LCDpower, INPUT);
+  //  pinMode(LCDpower, INPUT);
   pinMode(pullsol, OUTPUT);
   pinMode(ledLeft, OUTPUT);
   pinMode(ledRight, OUTPUT);
   pinMode(pump, OUTPUT);
   pinMode(element, OUTPUT);
-  digitalWrite(element, HIGH);
-  digitalWrite(LCD, HIGH);    
+  digitalWrite(element, LOW);
+  digitalWrite(LCD, HIGH);
 
 
-   
+
   // initialize serial communications:
   Serial.begin(9600);
   int inByte = 0;         // incoming serial byte
   boolean status_unlock;
   mySerial.begin(9600); // set up serial port for 9600 baud
   delay(500); // wait for display to boot up
- {
-   mySerial.write(254); // cursor to beginning of first line
-   mySerial.write(128);  
-  
-   mySerial.write("------1994------"); // clear display + legends
-   mySerial.write("-Cimbali Junior-");
-   delay(1000);
-   mySerial.write(254); // cursor to beginning of first line
-   mySerial.write(128);  
-  
-   mySerial.write("Boiler      Time"); // clear display + legends
-   mySerial.write("   C           s");
-  
- }
+  {
+    mySerial.write(254); // cursor to beginning of first line
+    mySerial.write(128);
+
+    mySerial.write("------1994------"); // clear display + legends
+    mySerial.write("-Cimbali Junior-");
+    delay(1000);
+    mySerial.write(254); // cursor to beginning of first line
+    mySerial.write(128);
+
+    mySerial.write("Boiler      Time"); // clear display + legends
+    mySerial.write("   C           s");
+
+  }
 }
- int buttonState = 0;         // variable for reading the pushbutton status
- boolean shotIsPulling = false;
- unsigned long timeShotStarted = 0; 
- int lastBoiler = 0;
+int buttonState = 0;         // variable for reading the pushbutton status
+boolean shotIsPulling = false;
+unsigned long timeShotStarted = 0;
+int lastBoiler = 0;
 unsigned long lastTime = 0;
- void loop() 
+void loop()
 {
   // read the value of the probe:
   int analogValue = analogRead(boilerFill);
 
   // if the analog value is lower than threshold, turn on the fillSol:
-  if (analogValue < threshold) 
+  if (analogValue < threshold)
   {
     digitalWrite(fillSol, HIGH);
   }
-  else 
+  else
   {
-    digitalWrite(fillSol, LOW);  
+    digitalWrite(fillSol, LOW);
   }
 
   // print the analog value:
   Serial.println(analogValue);
   delay(1);        // delay in between reads for stability
-    buttonState = digitalRead(pullshot);
+  buttonState = digitalRead(pullshot);
 
- reading = digitalRead(pullshot);
+  reading = digitalRead(pullshot);
 
   // if the input just went from LOW and HIGH and we've waited long enough
   // to ignore any noise on the circuit, toggle the output pin and remember
   // the time
-  if (reading == HIGH && previous == LOW && millis() - time > debounce) 
+  if (reading == HIGH && previous == LOW && millis() - time > debounce)
   {
-  if (state == HIGH)
-  state = LOW;   
-  else
-  state = HIGH;
-  time = millis();    
+    if (state == HIGH)
+      state = LOW;
+    else
+      state = HIGH;
+    time = millis();
   }
 
   digitalWrite(pullsol, state);
   digitalWrite(ledRight, state);
   digitalWrite(pump, state);
 
-   if (state == HIGH)
+  if (state == HIGH)
+  {
+    shotIsPulling = true;
+    if (timeShotStarted == 0)
     {
-      shotIsPulling = true;
-      if (timeShotStarted == 0)
+      timeShotStarted = millis();
+    }
+  }
+  else
+  {
+    shotIsPulling = false;
+    timeShotStarted = 0;
+  }
+  mySerial.write(254); // cursor to 14th position on first line
+  mySerial.write(205);
+
+  if (shotIsPulling)
+  {
+    int time = (millis() - timeShotStarted) / 1000;
+    if (time != lastTime)
+    {
+      if (time < 10)
       {
-        timeShotStarted = millis();
+        mySerial.print(" ");
       }
-    }
-    else
-    {
-      shotIsPulling = false;
-      timeShotStarted = 0;
-    }
-     mySerial.write(254); // cursor to 14th position on first line
-    mySerial.write(205);
- 
-    if (shotIsPulling)
-    {
-      int time = (millis() - timeShotStarted) / 1000;
-      if (time != lastTime)
+      if (time > 99)
       {
-        if (time < 10)
-        {
-          mySerial.print(" ");
-        }
-        if (time > 99)
-        {
-          mySerial.print("");
-        }
-        else if (time > 0)
-        {
-            mySerial.print(time);
-        }
-        else
-        {
-          mySerial.print("*");
-        }
-        
-        lastTime = time;
+        mySerial.print("");
       }
+      else if (time > 0)
+      {
+        mySerial.print(time);
+      }
+      else
+      {
+        mySerial.print("*");
+      }
+
+      lastTime = time;
     }
-    else
-    {
-      mySerial.print("  ");
-    }
- 
-  
+  }
+  else
+  {
+    mySerial.print("  ");
+  }
+
+
 
   previous = reading;
 
@@ -164,8 +164,8 @@ unsigned long lastTime = 0;
   if (brightness == 0 || brightness == 255) {
     fadeAmount = -fadeAmount ;
   }
- 
- // wait for 30 milliseconds to see the dimming effect
+
+  // wait for 30 milliseconds to see the dimming effect
   delay(30);
 }
 
